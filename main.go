@@ -38,7 +38,7 @@ type Package struct {
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: epub2txt <input.epub> [output.txt]")
-		fmt.Println("If no output file is specified, output will be printed to stdout")
+		fmt.Println("If no output file is specified, it will use the input filename with .txt extension")
 		os.Exit(1)
 	}
 
@@ -46,6 +46,9 @@ func main() {
 	outputPath := ""
 	if len(os.Args) >= 3 {
 		outputPath = os.Args[2]
+	} else {
+		// Generate output filename from input filename
+		outputPath = strings.TrimSuffix(epubPath, filepath.Ext(epubPath)) + ".txt"
 	}
 
 	text, err := convertEPUBToText(epubPath)
@@ -54,16 +57,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if outputPath != "" {
-		err = os.WriteFile(outputPath, []byte(text), 0644)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error writing output file: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("Successfully converted %s to %s\n", epubPath, outputPath)
-	} else {
-		fmt.Println(text)
+	err = os.WriteFile(outputPath, []byte(text), 0644)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing output file: %v\n", err)
+		os.Exit(1)
 	}
+	fmt.Printf("Successfully converted %s to %s\n", epubPath, outputPath)
 }
 
 func convertEPUBToText(epubPath string) (string, error) {
